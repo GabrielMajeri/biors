@@ -19,3 +19,9 @@ this could be a PC-AT compatible BIOS, or a [UEFI][uefi] implementation.
 
 ## Pronounciation
 BIOS is pronounced "**BY**-oss", this project is pronounced "**BY**-orss".
+
+## License
+Licensed under the [GNU General Public License][gpl] version 3
+or any other newer version, at your option.
+
+[gpl]: https://www.gnu.org/licenses/gpl-3.0.html
