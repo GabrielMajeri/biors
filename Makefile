@@ -1,39 +1,42 @@
-CONFIG := debug
-TARGET := x86_64-bios
-
+# Directory to store built files.
 BUILD_DIR := build
-TARGET_DIR := target/$(TARGET)/$(CONFIG)
 
-BIOS_ELF := $(BUILD_DIR)/bios.elf
-BIOS_IMAGE := $(BUILD_DIR)/bios.bin
+# The BIOS as an ELF executable.
+bios_elf := target/x86_64-bios/debug/biors.elf
 
-.PHONY: all test
+# The BIOS ROM image.
+bios_bin := $(BUILD_DIR)/bios.bin
 
-all: test
+# QEMU's debug console log file.
+log_file := $(BUILD_DIR)/debug.log
 
-build:
-	@mkdir $@
+dis := $(BUILD_DIR)/bios.dis.asm
 
-$(BIOS_IMAGE): $(BIOS_ELF) | build
-	@echo Creating final object binary
-	@objcopy --output-format binary $< $@
+.PHONY: build run
 
-$(BIOS_ELF): scripts/link.ld $(BUILD_DIR)/start.o $(TARGET_DIR)/libbiors.a
-	@echo Linking BIOS
-	@ld -fatal-warnings --gc-sections --script=$^ -o $@
+all: build run
 
-$(BUILD_DIR)/start.o: src/start.S
-	@echo Assembling real mode stage
-	@$(CC) -fvisibility=hidden -Wall -Wextra -Werror -c $< -o $@
+build: $(bios_bin)
 
-$(TARGET_DIR)/libbiors.a: src/lib.rs
-	@echo Building Rust stage
-	@xargo build --target x86_64-bios
-
-test: $(BIOS_IMAGE)
-	@echo Running in QEMU
+run: $(bios_bin)
+	@echo Running QEMU...
 	@qemu-system-x86_64 \
 		-nodefaults -nographic \
-		-M q35,accel=kvm:zen:hax:tcg \
-		-bios $(BIOS_IMAGE) \
-		-debugcon file:$(BUILD_DIR)/debug.log
+		-M q35 \
+		-bios '$<' \
+		-debugcon file:$(log_file) \
+		-no-reboot \
+		-d int,guest_errors -D build/qemu.log
+
+$(bios_bin): $(bios_elf)
+	@objcopy --output-format binary $< $@
+
+$(bios_elf): FORCE
+	@xargo build --target x86_64-bios
+
+FORCE:
+
+dis: $(dis)
+
+$(dis): $(bios_elf)
+	@objdump -d $< -M intel,amd64 > $@
