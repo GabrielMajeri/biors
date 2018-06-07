@@ -4,7 +4,7 @@ This repository contains an x86 platform firmware implementation - more commonly
 
 It is written in Rust, and is designed for modern x86_64 processors.
 
-Similarly to [CoreBoot][cboot], it is designed to deliver a "payload" -
+Similarly to [coreboot][cboot], it is designed to deliver a "payload" -
 this could be a PC-AT compatible BIOS, or a [UEFI][uefi] implementation.
 
 [rust]: https://www.rust-lang.org
